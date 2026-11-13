@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Олимпиада по английскому · муниципальный этап · 10–11 классы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Тренажёр: главный экран с сеткой «вариант × раздел» и экран раздела с проверкой */
+:root {
+  --ground: #e9edf2; --sheet: #ffffff; --ink: #18202b; --muted: #5a6676; --line: #d4dbe3;
+  --cell: #f4f7fb; --accent: #24489c; --accent-soft: #e4ebf8;
+  --ok: #1d7a46; --ok-soft: #e2f3e8; --bad: #b3261e; --bad-soft: #fbe7e5; --warn: #8a5a00; --warn-soft: #fbf0d9;
+  --ui: "Golos Text", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --read: Georgia, "Times New Roman", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ground: #11161c; --sheet: #1a2129; --ink: #e5ebf1; --muted: #9aa7b5; --line: #2d3843;
+    --cell: #212a34; --accent: #8fb0f0; --accent-soft: #24304a;
+    --ok: #6fd39a; --ok-soft: #173326; --bad: #ff8a80; --bad-soft: #3a1d1b; --warn: #f0c060; --warn-soft: #362b14; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 72px; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.55 var(--ui); }
+main { max-width: 860px; margin: 0 auto; padding-block: 28px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 18px; }
+main.wide { max-width: 1240px; }
+main.home { max-width: 1060px; }
+h1, h2, h3 { margin: 0; line-height: 1.25; text-wrap: balance; }
+h1 { font-size: clamp(1.5rem, 4vw, 2rem); }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: .9rem; }
+.kicker { font-size: .78rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.sheet { background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: clamp(16px, 3.5vw, 26px); display: grid; gap: 14px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.spread { justify-content: space-between; }
+button, .btn { font: inherit; cursor: pointer; border-radius: 10px; padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--sheet); font-weight: 500; text-decoration: none; display: inline-block; }
+button.ghost, .btn.ghost { background: transparent; color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input[type=text], select, textarea { font: inherit; color: var(--ink); background: var(--sheet); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-width: 0; }
+input[type=text]:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+.back { font-size: .95rem; text-decoration: none; }
+.back:hover { text-decoration: underline; }
+
+/* главный экран */
+.namebox { display: grid; gap: 6px; }
+.namebox input { max-width: 360px; width: 100%; }
+.grid-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+table.prog { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; font-size: .92rem; }
+table.prog th, table.prog td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: center; vertical-align: middle; }
+table.prog th { font-weight: 600; color: var(--muted); font-size: .8rem; line-height: 1.25; }
+table.prog th:first-child, table.prog td:first-child { text-align: left; white-space: nowrap; }
+table.prog td.total { font-family: var(--mono); font-size: .85rem; color: var(--muted); white-space: nowrap; }
+.cell { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 64px; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--cell); color: var(--ink); text-decoration: none; line-height: 1.2; }
+.cell:hover { border-color: var(--accent); }
+.cell .sc { font: 500 .85rem var(--mono); }
+.cell .st { font-size: .72rem; color: var(--muted); }
+.cell.done { background: var(--ok-soft); border-color: transparent; }
+.cell.part { background: var(--warn-soft); border-color: transparent; }
+.cell.low { background: var(--bad-soft); border-color: transparent; }
+.cell.draft { border-style: dashed; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .85rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.legend .l1::before { background: var(--ok-soft); } .legend .l2::before { background: var(--warn-soft); } .legend .l3::before { background: var(--bad-soft); }
+ol.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+
+/* экран раздела */
+.sechead { display: grid; gap: 6px; }
+.instr { background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; font-size: .95rem; }
+.instr p + p { margin-top: 6px; }
+.scorebar { position: sticky; top: 0; z-index: 5; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px;
+  display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; box-shadow: 0 4px 16px rgba(0,0,0,.06); }
+.scorebar .score { font: 600 1rem var(--mono); }
+.scorebar .score.good { color: var(--ok); }
+.q { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
+.q:first-child { border-top: 0; padding-top: 0; }
+.qn { font: 600 .85rem var(--mono); color: var(--muted); margin-right: 6px; }
+.opts { display: grid; gap: 6px; }
+.opt { display: flex; gap: 10px; align-items: flex-start; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; background: var(--sheet); }
+.opt:hover { border-color: var(--accent); }
+.opt input { margin-top: 4px; accent-color: var(--accent); flex: none; }
+.opt .let { font: 600 .85rem var(--mono); color: var(--muted); flex: none; margin-top: 2px; }
+.opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.locked .opt { cursor: default; }
+.tf { display: flex; gap: 8px; flex-wrap: wrap; }
+.tf .opt { min-width: 110px; }
+.fb { font-size: .92rem; border-radius: 8px; padding: 8px 12px; background: var(--cell); }
+.fb.bad { background: var(--bad-soft); }
+.fb.good { background: var(--ok-soft); }
+.fb b { font-weight: 600; }
+.mark { font-weight: 700; margin-right: 4px; }
+.mark.ok { color: var(--ok); } .mark.no { color: var(--bad); }
+
+.reader { font: 17px/1.65 var(--read); }
+.reader p + p { margin-top: .7em; }
+.reader p { text-indent: 1.5em; }
+.reader .ttl { text-indent: 0; font: 600 1.15rem/1.3 var(--ui); margin-bottom: .2em; }
+.reader .sub { text-indent: 0; font-style: italic; color: var(--muted); margin-bottom: .8em; }
+.split { display: grid; gap: 18px; }
+@media (min-width: 1000px) {
+  .split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; }
+  .split > .sticky { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow: auto; }
+}
+.gap-sel { font: 600 .9rem var(--mono); padding: 2px 6px; margin: 0 2px; border-radius: 6px; text-indent: 0; }
+.gap-n { font: 600 .8rem var(--mono); color: var(--muted); }
+.gap-sel.right { border-color: var(--ok); background: var(--ok-soft); }
+.gap-sel.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.fix { font: 600 .85rem var(--mono); color: var(--ok); margin-left: 2px; }
+.letters { display: grid; gap: 8px; }
+.letter { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); font-size: .95rem; }
+.letter b { font: 600 .9rem var(--mono); color: var(--accent); }
+.letter.used { opacity: .55; }
+.letter.extra { border-style: dashed; }
+
+.lines { display: grid; gap: 0; }
+.line { display: grid; grid-template-columns: 34px minmax(0, 1fr) 150px; gap: 8px 12px; padding: 10px 0; border-top: 1px solid var(--line); align-items: start; }
+.line .n { font: 600 .85rem var(--mono); color: var(--muted); padding-top: 2px; }
+.line input { width: 100%; font-family: var(--mono); }
+.line .fb { grid-column: 2 / -1; }
+.line.ex { opacity: .75; }
+@media (max-width: 620px) { .line { grid-template-columns: 28px minmax(0, 1fr); } .line input, .line .exa { grid-column: 2; } }
+.inp-ok { border-color: var(--ok) !important; background: var(--ok-soft) !important; }
+.inp-bad { border-color: var(--bad) !important; background: var(--bad-soft) !important; }
+
+.tr { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
+.tr .src { font-weight: 500; }
+.tr .kw { font: 600 .9rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.tr .tgt { line-height: 2.1; }
+.tr .tgt input { width: min(340px, 100%); font-family: var(--mono); }
+.wc { font: 500 .78rem var(--mono); color: var(--muted); margin-left: 6px; white-space: nowrap; }
+.wc.bad { color: var(--bad); }
+
+.wf { line-height: 2.15; }
+.wf p + p { margin-top: .6em; }
+.wf input { width: 150px; font-family: var(--mono); padding: 2px 8px; }
+.base { font: 600 .74rem var(--mono); letter-spacing: .05em; color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 1px 6px; margin-left: 4px; white-space: nowrap; }
+.wf .gn { font: 600 .78rem var(--mono); color: var(--muted); margin-right: 2px; }
+.answers { display: grid; gap: 8px; }
+
+.match { display: grid; gap: 0; }
+.mrow { display: grid; grid-template-columns: 30px minmax(0, 1fr) 84px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.mrow .n { font: 600 .85rem var(--mono); color: var(--muted); }
+.mrow .fb { grid-column: 2 / -1; }
+
+.notice { border: 2px solid var(--line); border-radius: 10px; padding: 12px 16px; margin: 8px 0; }
+.notice-h { font-weight: 700; font-size: 1.05rem; }
+.must { font-style: italic; font-weight: 500; padding: 6px 10px; background: var(--cell); border-radius: 6px; margin: 4px 0; }
+blockquote { margin: 8px 0; padding: 10px 16px; border-left: 4px solid var(--accent); background: var(--cell); border-radius: 0 8px 8px 0; font-style: italic; }
+blockquote cite { display: block; margin-top: 6px; font-style: normal; color: var(--muted); font-size: .9rem; }
+.prompt ul { margin: 6px 0; padding-left: 1.3em; }
+.prompt p + p { margin-top: 6px; }
+textarea.essay { width: 100%; min-height: 380px; resize: vertical; font: 17px/1.6 var(--read); padding: 14px; }
+.meter { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: .92rem; }
+.pill { font: 600 .85rem var(--mono); border-radius: 999px; padding: 3px 10px; background: var(--cell); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+.checks { display: grid; gap: 6px; }
+.chk { display: flex; gap: 10px; align-items: flex-start; }
+.chk input { margin-top: 4px; accent-color: var(--accent); }
+.auto { font: 600 .8rem var(--mono); }
+.auto.ok { color: var(--ok); } .auto.no { color: var(--bad); }
+details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+details[open] { padding-bottom: 14px; }
+summary { cursor: pointer; font-weight: 600; }
+table.crit { border-collapse: collapse; width: 100%; font-size: .88rem; margin-top: 10px; }
+table.crit th, table.crit td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; text-align: left; }
+table.crit th { background: var(--cell); }
+.msg { border-radius: 10px; padding: 10px 14px; font-size: .95rem; }
+.msg.ok { background: var(--ok-soft); } .msg.err { background: var(--bad-soft); } .msg.info { background: var(--cell); }
+.transcript p { margin: 0 0 .6em; }
+.transcript .dir { color: var(--muted); font-style: italic; font-size: .9rem; font-family: var(--ui); }
+audio { width: 100%; }
+.audio-box { display: grid; gap: 8px; background: var(--accent-soft); border-radius: 10px; padding: 12px 14px; }
+.nav { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--sheet); color: var(--ink); max-width: 440px; padding: 20px; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media print { .scorebar, .nav, button { display: none !important; } body { background: #fff; } .sheet { border: 0; } }
+</style>
+</head>
+<body>
+<main id="app" aria-live="polite"></main>
+<dialog id="dlg"><form method="dialog" style="display:grid;gap:14px"><h2 id="dlgT"></h2><p id="dlgP" class="muted"></p><div class="row" style="justify-content:flex-end"><button value="no" class="ghost" id="dlgNo">Отмена</button><button value="yes" id="dlgYes">Да</button></div></form></dialog>
+<script src="data.js"></script>
+<script>
+'use strict';
+const SEND_URL = 'https://script.google.com/macros/s/AKfycbxlep0IIMMxx7Zp-WRXLWn0MK0m14Zoyind7NsR0Kgu1cWpcYyVYSV_48_ea_eO8Y_WFg/exec';
+const STORE = 'olymp-mun-1011-v1';
+const D = window.OLYMP_DATA;
+const SECTIONS = [
+  { id: 'listening', name: 'Аудирование', short: 'Аудирование', max: 15, time: 15 },
+  { id: 'reading1', name: 'Чтение. Задание 1', short: 'Чтение 1', max: 10, time: 20 },
+  { id: 'reading2', name: 'Чтение. Задание 2', short: 'Чтение 2', max: 10, time: 25 },
+  { id: 'uoe1', name: 'Лексика и грамматика. Лишнее слово', short: 'Лишнее слово', max: 15, time: 20 },
+  { id: 'uoe2', name: 'Лексика и грамматика. Трансформации', short: 'Трансфор­мации', max: 10, time: 15 },
+  { id: 'uoe3', name: 'Лексика и грамматика. Словообразование', short: 'Словообра­зование', max: 10, time: 10 },
+  { id: 'uoe4', name: 'Лингвострановедение', short: 'Страно­ведение', max: 10, time: 15 },
+  { id: 'writing', name: 'Письмо', short: 'Письмо', max: 20, time: 60 },
+];
+const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const app = $('#app');
+
+// ---------- хранение ----------
+let S = { name: '', v: {} };
+try { const raw = localStorage.getItem(STORE); if (raw) S = Object.assign(S, JSON.parse(raw)); } catch (e) {}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
+function st(y, sec) { S.v[y] = S.v[y] || {}; S.v[y][sec] = S.v[y][sec] || { ans: {}, checked: false }; return S.v[y][sec]; }
+function peek(y, sec) { return (S.v[y] && S.v[y][sec]) || null; }
+const variant = id => D.find(v => v.id === id);
+
+// ---------- нормализация ответов ----------
+function norm(s) {
+  return String(s || '').toLowerCase().replace(/[’‘`´]/g, "'").replace(/[“”«»"]/g, '').replace(/[.,!?;:]+$/g, '').replace(/,/g, '').replace(/\s+/g, ' ').trim();
+}
+function isTick(s) { return /^(v|✓|✔|tick|correct)$/i.test(String(s || '').trim()); }
+function wordsIn(s) { const t = String(s || '').trim(); return t ? t.split(/\s+/).length : 0; }
+
+// ---------- диалог ----------
+function ask(title, text, yes = 'Да') {
+  const d = $('#dlg'); $('#dlgT').textContent = title; $('#dlgP').textContent = text; $('#dlgYes').textContent = yes;
+  return new Promise(res => { d.returnValue = ''; d.onclose = () => res(d.returnValue === 'yes'); d.showModal(); });
+}
+
+// ---------- маршрутизация ----------
+function go(hash) { location.hash = hash; }
+window.addEventListener('hashchange', route);
+function route() {
+  const m = location.hash.match(/^#(\d{4})\/(\w+)$/);
+  if (m && variant(m[1]) && SEC[m[2]]) renderSection(m[1], m[2]);
+  else renderHome();
+  window.scrollTo(0, 0);
+}
+
+// ---------- главный экран ----------
+function cellClass(p, max) {
+  if (!p) return '';
+  if (!p.checked) return 'draft';
+  const r = p.score / max; return r >= .8 ? 'done' : r >= .5 ? 'part' : 'low';
+}
+function renderHome() {
+  app.className = 'home';
+  const rows = D.map(v => {
+    let sum = 0, done = 0;
+    const cells = SECTIONS.map(s => {
+      const p = peek(v.id, s.id);
+      let sc = '—', stt = 'начать';
+      if (s.id === 'writing') {
+        const w = p && p.text ? wordsIn(p.text) : 0;
+        if (p && p.sentAt) { sc = 'отпр.'; stt = w + ' сл.'; }
+        else if (w) { sc = w; stt = 'слов'; }
+      } else if (p && p.checked) { sc = p.score + '/' + s.max; stt = 'пройдено'; sum += p.score; done += s.max; }
+      else if (p && Object.keys(p.ans || {}).length) { stt = 'начато'; }
+      const cls = s.id === 'writing' ? (p && p.sentAt ? 'done' : (p && p.text ? 'draft' : '')) : cellClass(p, s.max);
+      return `<td><a class="cell ${cls}" href="#${v.id}/${s.id}" aria-label="${esc(v.title)}, ${esc(s.name)}: ${esc(sc)} ${esc(stt)}"><span class="sc">${esc(sc)}</span><span class="st">${esc(stt)}</span></a></td>`;
+    }).join('');
+    return `<tr><td><b>${esc(v.title)}</b></td>${cells}<td class="total">${done ? sum + '/' + done : ''}</td></tr>`;
+  }).join('');
+  app.innerHTML = `
+  <header style="display:grid;gap:8px">
+    <p class="kicker">ВсОШ по английскому · муниципальный этап · 10–11 классы</p>
+    <h1>Тренажёр к олимпиаде</h1>
+    <p class="muted">Задания муниципального этапа Москвы за четыре года. Выберите год и раздел: ответы проверяются сразу, с правильными вариантами и пояснениями.</p>
+  </header>
+  <section class="sheet namebox">
+    <label for="nm"><b>Ваше имя и фамилия</b> <span class="muted small">нужны, чтобы отправить письменную работу учителю</span></label>
+    <input type="text" id="nm" autocomplete="name" placeholder="Например, Анна Смирнова" value="${esc(S.name)}">
+  </section>
+  <section class="sheet">
+    <div class="row spread"><h2>Варианты и разделы</h2><div class="legend"><span class="l1">80% и выше</span><span class="l2">50–79%</span><span class="l3">ниже 50%</span></div></div>
+    <div class="grid-wrap"><table class="prog">
+      <thead><tr><th>Год</th>${SECTIONS.map(s => `<th>${s.short}<br><span style="font-weight:400">${s.id === 'writing' ? '20 б.' : s.max + ' б.'}</span></th>`).join('')}<th>Итого</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <p class="muted small">На олимпиаде: аудирование 15 минут, чтение 45 минут, лексика и грамматика 60 минут, письмо 60 минут. Максимум 100 баллов.</p>
+  </section>
+  <section class="sheet">
+    <h2>Как заниматься</h2>
+    <ol class="plain">
+      <li>Начните со свежего года (2025–2026) или с раздела, который даётся труднее всего.</li>
+      <li>Выполните задания и нажмите «Проверить». Ошибки подсветятся, рядом будут правильные ответы и пояснения.</li>
+      <li>В аудировании после проверки откроется текст записи: найдите в нём, где прозвучал ответ.</li>
+      <li>Письмо проверяет учитель: напишите текст и нажмите «Отправить учителю».</li>
+      <li>Ответы сохраняются в этом браузере. Чтобы пройти раздел заново, нажмите «Начать раздел заново».</li>
+    </ol>
+  </section>
+  <p class="muted small" style="text-align:center"><button class="ghost" id="wipe">Стереть все мои ответы</button></p>`;
+  $('#nm').addEventListener('input', e => { S.name = e.target.value; save(); });
+  $('#wipe').addEventListener('click', async () => {
+    if (await ask('Стереть все ответы?', 'Все ответы и тексты в тренажёре удалятся из этого браузера. Имя останется.', 'Стереть')) { S.v = {}; save(); renderHome(); }
+  });
+}
+
+// ---------- общий каркас раздела ----------
+function frame(v, sec, body, opts = {}) {
+  const s = SEC[sec]; const i = SECTIONS.findIndex(x => x.id === sec);
+  const prev = SECTIONS[i - 1], next = SECTIONS[i + 1];
+  app.className = opts.wide ? 'wide' : '';
+  app.innerHTML = `
+  <header class="sechead">
+    <a class="back" href="#">← Все разделы</a>
+    <p class="kicker">${esc(v.title)} · муниципальный этап · 10–11 классы</p>
+    <h1>${esc(s.name)}</h1>
+    <p class="muted small">На олимпиаде: около ${s.time} минут · ${s.max} баллов</p>
+  </header>
+  ${opts.bar === false ? '' : `<div class="scorebar" id="bar"></div>`}
+  ${body}
+  <nav class="nav">
+    ${prev ? `<a class="btn ghost" href="#${v.id}/${prev.id}">← ${esc(prev.name)}</a>` : '<span></span>'}
+    ${next ? `<a class="btn ghost" href="#${v.id}/${next.id}">${esc(next.name)} →</a>` : `<a class="btn ghost" href="#">К списку разделов</a>`}
+  </nav>`;
+}
+function bar(y, sec, total, onCheck, onReset) {
+  const p = st(y, sec); const el = $('#bar'); if (!el) return;
+  const answered = Object.values(p.ans).filter(x => x !== '' && x != null).length;
+  if (p.checked) {
+    const good = p.score / total >= .8;
+    el.innerHTML = `<span>Результат: <span class="score ${good ? 'good' : ''}">${p.score} из ${total}</span></span><button class="ghost" id="reset">Начать раздел заново</button>`;
+    $('#reset').onclick = async () => { if (await ask('Начать заново?', 'Ответы в этом разделе удалятся.', 'Начать заново')) onReset(); };
+  } else {
+    el.innerHTML = `<span class="muted">Отвечено: <b>${answered}</b> из ${total}</span><button id="check">Проверить</button>`;
+    $('#check').onclick = async () => {
+      if (answered < total && !(await ask('Не все ответы даны', `Вы ответили на ${answered} из ${total}. Пустые ответы засчитаются как неверные.`, 'Проверить'))) return;
+      onCheck();
+    };
+  }
+}
+function resetSec(y, sec) { S.v[y][sec] = { ans: {}, checked: false }; save(); route(); }
+function fbHtml(ok, right, expl) {
+  if (ok) return expl ? `<div class="fb good"><span class="mark ok">✓</span>${esc(expl)}</div>` : '';
+  return `<div class="fb bad"><span class="mark no">✗</span>Правильно: <b>${right}</b>${expl ? '<br>' + esc(expl) : ''}</div>`;
+}
+
+// ---------- аудирование ----------
+function renderListening(v) {
+  const L = v.listening; const p = st(v.id, 'listening');
+  const items = [];
+  L.tasks.forEach((t, ti) => t.items.forEach((it, ii) => items.push({ t, ti, ii, it, key: ti + '-' + ii, n: ti === 0 ? ii + 1 : (t.start || 11) + ii })));
+  const body = `
+  <section class="sheet">
+    <div class="audio-box">
+      <b>Запись к обоим заданиям</b>
+      <audio controls preload="metadata" src="${esc(L.audio)}"></audio>
+      <p class="small muted">На олимпиаде первый текст звучит дважды, второй — один раз, паузы уже есть в записи. Для честной тренировки не останавливайте запись. Перематывать и переслушивать можно после проверки.</p>
+    </div>
+  </section>
+  ${L.tasks.map((t, ti) => `
+  <section class="sheet ${p.checked ? 'locked' : ''}">
+    <h2>Задание ${ti + 1}</h2>
+    <div class="instr"><p>${esc(t.instr)}</p></div>
+    <div>${items.filter(x => x.ti === ti).map(x => qHtml(x, p)).join('')}</div>
+  </section>`).join('')}
+  ${p.checked ? `<section class="sheet"><details open><summary>Текст записи</summary><div class="transcript reader" style="margin-top:12px">${L.transcript.map(x => x.d ? `<p class="dir">${esc(x.t)}</p>` : `<p style="text-indent:0">${esc(x.t)}</p>`).join('')}</div></details></section>` : ''}`;
+  frame(v, 'listening', body);
+  wireChoice(v.id, 'listening', items, () => renderListening(v));
+}
+function qHtml(x, p) {
+  const { t, it, key, n } = x; const chosen = p.ans[key];
+  const name = 'q' + key;
+  const optList = t.type === 'tf' ? ['True', 'False'] : it.opts;
+  const letters = t.type === 'tf' ? ['A', 'B'] : ['A', 'B', 'C', 'D'];
+  const opts = optList.map((o, i) => {
+    let cls = chosen === i ? 'sel' : '';
+    if (p.checked) cls = i === it.a ? 'right' : (chosen === i ? 'wrong' : '');
+    return `<label class="opt ${cls}"><input type="radio" name="${name}" value="${i}" ${chosen === i ? 'checked' : ''} ${p.checked ? 'disabled' : ''}><span class="let">${letters[i]})</span><span>${esc(o)}</span></label>`;
+  }).join('');
+  let fb = '';
+  if (p.checked) {
+    const ok = chosen === it.a;
+    fb = ok ? '' : `<div class="fb bad"><span class="mark no">✗</span>Правильно: <b>${letters[it.a]}) ${esc(optList[it.a])}</b>${chosen == null ? ' · ответа не было' : ''}</div>`;
+  }
+  return `<div class="q" data-key="${key}"><div><span class="qn">${n}.</span>${p.checked ? `<span class="mark ${chosen === it.a ? 'ok' : 'no'}">${chosen === it.a ? '✓' : '✗'}</span>` : ''}${esc(it.q)}</div><div class="${t.type === 'tf' ? 'tf' : 'opts'}">${opts}</div>${fb}</div>`;
+}
+function wireChoice(y, sec, items, rerender) {
+  const p = st(y, sec); const total = items.length;
+  $$('.q input[type=radio]').forEach(inp => inp.addEventListener('change', () => {
+    const key = inp.closest('.q').dataset.key; p.ans[key] = +inp.value; save();
+    $$('.opt', inp.closest('.q')).forEach(l => l.classList.toggle('sel', l.contains(inp)));
+    bar(y, sec, total, check, () => resetSec(y, sec));
+  }));
+  function check() {
+    p.score = items.filter(x => p.ans[x.key] === x.it.a).length; p.checked = true; p.at = Date.now(); save(); rerender();
+    $('#bar') && $('#bar').scrollIntoView({ block: 'nearest' });
+  }
+  bar(y, sec, total, check, () => resetSec(y, sec));
+}
+
+// ---------- чтение 1 ----------
+function passageHtml(title, sub, paras) {
+  return `<div class="reader">${title ? `<p class="ttl">${esc(title)}</p>` : ''}${sub ? `<p class="sub">${esc(sub)}</p>` : ''}${paras.map(x => `<p>${esc(x)}</p>`).join('')}</div>`;
+}
+function renderReading1(v) {
+  const R = v.reading1; const p = st(v.id, 'reading1');
+  const t = { type: 'mcq' };
+  const items = R.items.map((it, i) => ({ t, ti: 0, ii: i, it, key: '0-' + i, n: i + 1 }));
+  const body = `
+  <div class="instr"><p>Read the passage and choose the option (A, B, C or D) which best fits according to the text.</p></div>
+  <div class="split">
+    <section class="sheet sticky">${passageHtml(R.title, R.subtitle, R.passage)}</section>
+    <section class="sheet ${p.checked ? 'locked' : ''}">${items.map(x => qHtml(x, p)).join('')}</section>
+  </div>`;
+  frame(v, 'reading1', body, { wide: true });
+  wireChoice(v.id, 'reading1', items, () => renderReading1(v));
+}
+
+// ---------- чтение 2 ----------
+function renderReading2(v) {
+  const R = v.reading2; const p = st(v.id, 'reading2'); const letters = Object.keys(R.opts);
+  const used = new Set(Object.values(p.ans).filter(Boolean));
+  const extra = letters.find(l => !R.a.includes(l));
+  const paras = R.paras.map(par => esc(par).replace(/\{(\d+)\}/g, (_, n) => {
+    const i = +n - 1; const val = p.ans[i] || '';
+    let cls = ''; if (p.checked) cls = val === R.a[i] ? 'right' : 'wrong';
+    const sel = `<select class="gap-sel ${cls}" data-i="${i}" aria-label="Пропуск ${n}" ${p.checked ? 'disabled' : ''}><option value="">${n}</option>${letters.map(l => `<option ${val === l ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+    const fix = p.checked && val !== R.a[i] ? `<span class="fix">→ ${R.a[i]}</span>` : '';
+    return `<span class="gap-n">(${n})</span>${sel}${fix}`;
+  }));
+  const body = `
+  <div class="instr"><p>Choose which of the sentences A–K fit into the numbered gaps in the text. There is one extra sentence which does not fit in any of the gaps.</p><p class="small">Выберите букву в каждом пропуске. Использованные предложения в списке становятся бледнее.</p></div>
+  <div class="split">
+    <section class="sheet sticky"><div class="reader">${R.title ? `<p class="ttl">${esc(R.title)}</p>` : ''}${paras.map(x => `<p>${x}</p>`).join('')}</div></section>
+    <section class="sheet"><h3>Предложения A–K</h3><div class="letters">${letters.map(l => `<div class="letter ${!p.checked && used.has(l) ? 'used' : ''} ${p.checked && l === extra ? 'extra' : ''}"><b>${l}</b><span>${esc(R.opts[l])}${p.checked && l === extra ? ' <span class="muted small">— лишнее предложение</span>' : ''}</span></div>`).join('')}</div></section>
+  </div>`;
+  frame(v, 'reading2', body, { wide: true });
+  const total = 10;
+  $$('.gap-sel').forEach(s => s.addEventListener('change', () => {
+    const i = +s.dataset.i; if (s.value) p.ans[i] = s.value; else delete p.ans[i]; save();
+    const u = new Set(Object.values(p.ans)); $$('.letter').forEach(el => el.classList.toggle('used', u.has($('b', el).textContent)));
+    bar(v.id, 'reading2', total, check, () => resetSec(v.id, 'reading2'));
+  }));
+  function check() { p.score = R.a.filter((a, i) => p.ans[i] === a).length; p.checked = true; save(); renderReading2(v); }
+  bar(v.id, 'reading2', total, check, () => resetSec(v.id, 'reading2'));
+}
+
+// ---------- лишнее слово ----------
+function renderUoe1(v) {
+  const U = v.uoe1; const p = st(v.id, 'uoe1');
+  const ok = (i) => { const a = U.items[i].a[0]; const g = p.ans[i] || ''; return a === 'V' ? isTick(g) : norm(g) === norm(a); };
+  const body = `
+  <div class="instr"><p>Read the text and look carefully at each line. Some of the lines are correct, and some have a word which should not be there. If a line is correct, write <b>V</b>. If a line has a word which should not be there, write the word.</p></div>
+  <section class="sheet">
+    ${U.title ? `<h2 style="font-family:var(--read)">${esc(U.title)}</h2>` : ''}
+    <div class="lines">
+      ${U.examples.map((e, i) => `<div class="line ex"><span class="n">${i ? '00' : '0'}</span><span class="reader" style="font-size:16px">${esc(e.text)}</span><span class="exa" style="font:600 .9rem var(--mono)">${esc(e.a)} <span class="muted small" style="font-family:var(--ui);font-weight:400">пример</span></span></div>`).join('')}
+      ${U.items.map((it, i) => {
+        const cls = p.checked ? (ok(i) ? 'inp-ok' : 'inp-bad') : '';
+        return `<div class="line"><span class="n">${i + 1}</span><span class="reader" style="font-size:16px">${esc(it.text)}</span>
+          <input type="text" data-i="${i}" class="${cls}" value="${esc(p.ans[i] || '')}" placeholder="V или слово" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Строка ${i + 1}" ${p.checked ? 'disabled' : ''}>
+          ${p.checked ? fbHtml(ok(i), esc(it.a[0]), it.expl) : ''}</div>`;
+      }).join('')}
+    </div>
+  </section>`;
+  frame(v, 'uoe1', body);
+  wireText(v, 'uoe1', U.items.length, () => { p.score = U.items.filter((_, i) => ok(i)).length; }, () => renderUoe1(v));
+}
+function wireText(v, sec, total, score, rerender) {
+  const p = st(v.id, sec);
+  $$('input[data-i]').forEach(inp => inp.addEventListener('input', () => {
+    const i = inp.dataset.i; if (inp.value.trim()) p.ans[i] = inp.value; else delete p.ans[i]; save();
+    const wc = inp.parentElement.querySelector('.wc'); if (wc) updWc(inp, wc);
+    bar(v.id, sec, total, check, () => resetSec(v.id, sec));
+  }));
+  function check() { score(); p.checked = true; save(); rerender(); }
+  bar(v.id, sec, total, check, () => resetSec(v.id, sec));
+}
+
+// ---------- трансформации ----------
+function updWc(inp, wc) {
+  const n = wordsIn(inp.value); const need = +wc.dataset.n;
+  wc.textContent = n + ' из ' + need + ' сл.'; wc.classList.toggle('bad', n > 0 && n !== need);
+}
+function renderUoe2(v) {
+  const U = v.uoe2; const p = st(v.id, 'uoe2');
+  const ok = i => U.items[i].a.some(a => norm(a) === norm(p.ans[i]));
+  const body = `
+  <div class="instr"><p>Complete the second sentence so that it has a similar meaning to the first sentence, using the word given. Do not change the word given. Use from two to five words — the number is given in brackets. Do not use short forms. Mind both grammar and spelling.</p>
+  <p class="small">Пример: The pool isn’t deep enough to swim in. <b>too</b> → The pool <b>is too shallow to</b> swim in.</p></div>
+  <section class="sheet">
+    ${U.items.map((it, i) => {
+      const cls = p.checked ? (ok(i) ? 'inp-ok' : 'inp-bad') : '';
+      let fb = '';
+      if (p.checked) {
+        if (ok(i)) fb = `<div class="fb good"><span class="mark ok">✓</span>${esc(it.expl)}</div>`;
+        else fb = `<div class="fb bad"><span class="mark no">✗</span>Ключ: <b>${it.a.map(esc).join('</b> / <b>')}</b><br>${esc(it.expl)}<br><span class="muted small">Если ваш вариант другой, но грамматически верен и сохраняет смысл, на олимпиаде его могут засчитать: ключи в этом задании расширяются. Уточните у учителя.</span></div>`;
+      }
+      return `<div class="tr" ${i === 0 ? 'style="border-top:0;padding-top:0"' : ''}>
+        <div><span class="qn">${i + 1}.</span><span class="src">${esc(it.src)}</span></div>
+        <div class="kw">${esc(it.word)}</div>
+        <div class="tgt">${esc(it.pre)} <input type="text" data-i="${i}" class="${cls}" value="${esc(p.ans[i] || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Задание ${i + 1}, ${it.n} слов(а)" ${p.checked ? 'disabled' : ''}><span class="wc" data-n="${it.n}"></span> ${esc(it.post)}</div>
+        ${fb}</div>`;
+    }).join('')}
+  </section>`;
+  frame(v, 'uoe2', body);
+  $$('.tr input').forEach(inp => updWc(inp, inp.parentElement.querySelector('.wc')));
+  wireText(v, 'uoe2', U.items.length, () => { p.score = U.items.filter((_, i) => ok(i)).length; }, () => renderUoe2(v));
+}
+
+// ---------- словообразование ----------
+function renderUoe3(v) {
+  const U = v.uoe3; const p = st(v.id, 'uoe3');
+  const ok = i => U.items[i].a.some(a => norm(a) === norm(p.ans[i]));
+  const paras = U.paras.map(par => esc(par).replace(/\{(\d+)\}/g, (_, n) => {
+    const i = +n - 1; const it = U.items[i];
+    const cls = p.checked ? (ok(i) ? 'inp-ok' : 'inp-bad') : '';
+    return `<span class="gn">(${n})</span><input type="text" data-i="${i}" class="${cls}" value="${esc(p.ans[i] || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Пропуск ${n}, слово ${esc(it.base)}" ${p.checked ? 'disabled' : ''}><span class="base">${esc(it.base)}</span>`;
+  }));
+  const body = `
+  <div class="instr"><p>Use the word given in capitals to form a new word that fits in the gap. Mind the spelling.</p></div>
+  <section class="sheet">
+    <div class="wf reader" style="font-size:17px">
+      <p style="text-indent:0"><span class="muted small" style="font-family:var(--ui)">Пример (0):</span> ${esc(U.example.text)} <span class="base">${esc(U.example.base)}</span> → <b>${esc(U.example.a)}</b></p>
+      ${paras.map(x => `<p style="text-indent:0">${x}</p>`).join('')}
+    </div>
+  </section>
+  ${p.checked ? `<section class="sheet"><h2>Ответы и пояснения</h2><div class="answers">${U.items.map((it, i) => `<div class="fb ${ok(i) ? 'good' : 'bad'}"><span class="mark ${ok(i) ? 'ok' : 'no'}">${ok(i) ? '✓' : '✗'}</span><b>${i + 1}. ${esc(it.base)} → ${it.a.map(esc).join(' / ')}</b>${!ok(i) && p.ans[i] ? ` <span class="muted">(у вас: ${esc(p.ans[i])})</span>` : ''}<br>${esc(it.expl)}</div>`).join('')}</div></section>` : ''}`;
+  frame(v, 'uoe3', body);
+  wireText(v, 'uoe3', U.items.length, () => { p.score = U.items.filter((_, i) => ok(i)).length; }, () => renderUoe3(v));
+}
+
+// ---------- страноведение ----------
+function renderUoe4(v) {
+  const U = v.uoe4; const p = st(v.id, 'uoe4'); const letters = Object.keys(U.opts);
+  const body = `
+  <div class="instr"><p>Match the items 1–10 to the phenomena ${letters[0]}–${letters[letters.length - 1]}. There are some extra phenomena which do not match.</p></div>
+  <div class="split">
+    <section class="sheet"><div class="match">
+      ${U.left.map((l, i) => {
+        const val = p.ans[i] || ''; let cls = ''; if (p.checked) cls = val === U.a[i] ? 'right' : 'wrong';
+        return `<div class="mrow" ${i === 0 ? 'style="border-top:0"' : ''}><span class="n">${i + 1}</span><span style="font-weight:500">${esc(l)}</span>
+          <select class="gap-sel ${cls}" data-i="${i}" aria-label="${i + 1}. ${esc(l)}" ${p.checked ? 'disabled' : ''}><option value="">—</option>${letters.map(x => `<option ${val === x ? 'selected' : ''}>${x}</option>`).join('')}</select>
+          ${p.checked && val !== U.a[i] ? `<div class="fb bad"><span class="mark no">✗</span>Правильно: <b>${U.a[i]})</b> ${esc(U.opts[U.a[i]])}</div>` : ''}</div>`;
+      }).join('')}
+    </div></section>
+    <section class="sheet sticky"><div class="letters">${letters.map(l => `<div class="letter"><b>${l}</b><span>${esc(U.opts[l])}</span></div>`).join('')}</div></section>
+  </div>`;
+  frame(v, 'uoe4', body, { wide: true });
+  $$('select.gap-sel').forEach(s => s.addEventListener('change', () => {
+    const i = +s.dataset.i; if (s.value) p.ans[i] = s.value; else delete p.ans[i]; save();
+    bar(v.id, 'uoe4', 10, check, () => resetSec(v.id, 'uoe4'));
+  }));
+  function check() { p.score = U.a.filter((a, i) => p.ans[i] === a).length; p.checked = true; save(); renderUoe4(v); }
+  bar(v.id, 'uoe4', 10, check, () => resetSec(v.id, 'uoe4'));
+}
+
+// ---------- письмо ----------
+const CRIT = `<table class="crit"><thead><tr><th>Баллы</th><th>К1 Решение задачи</th><th>К2 Организация</th><th>К3 Лексика</th><th>К4 Грамматика</th><th>К5 Орфография и пунктуация</th></tr></thead><tbody>
+<tr><td>4</td><td>Все 4 аспекта раскрыты, объём 180–275 слов</td><td>Логично, абзацы, связки без ошибок</td><td>Без ошибок</td><td>Без ошибок</td><td>Без ошибок</td></tr>
+<tr><td>3</td><td>Не раскрыт 1 аспект</td><td>1–2 ошибки</td><td>1–2 ошибки</td><td>1–2 ошибки</td><td>1–2 ошибки</td></tr>
+<tr><td>2</td><td>Не раскрыты 2 аспекта</td><td>3–4 ошибки</td><td>3–4 ошибки</td><td>3–4 ошибки</td><td>3–4 ошибки</td></tr>
+<tr><td>1</td><td>Не раскрыты 3 аспекта</td><td>5–6 ошибок</td><td>5–6 ошибок</td><td>5–6 ошибок</td><td>5–6 ошибок</td></tr>
+<tr><td>0</td><td>Аспекты не раскрыты или объём меньше 180 слов. Тогда вся работа — 0 баллов</td><td>7 и больше</td><td>7 и больше</td><td>7 и больше</td><td>7 и больше</td></tr></tbody></table>
+<p class="small muted" style="margin-top:8px">Если в работе больше 275 слов, проверяют только первые 250. Однотипные грамматические ошибки считаются один раз. В пунктуации учитывают точку в заголовке, точки и вопросительные знаки в конце предложений, запятые при перечислении, после вводных слов и при прямой речи.</p>`;
+function sentNorm(s) { return String(s || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+function autoChecks(W, text) {
+  const lines = String(text || '').split(/\n/).map(x => x.trim()).filter(Boolean);
+  const res = {};
+  if (W.kind === 'story') {
+    const first = lines[0] || '';
+    res.title = lines.length > 1 && wordsIn(first) <= 10 && !/[.!?]$/.test(first);
+    res.titleDot = lines.length > 1 && wordsIn(first) <= 10 && /\.$/.test(first);
+    const body = sentNorm(lines.slice(res.title || res.titleDot ? 1 : 0).join(' '));
+    if (W.begin) res.begin = body.startsWith(sentNorm(W.begin));
+    if (W.end) res.end = body.endsWith(sentNorm(W.end));
+  }
+  return res;
+}
+function renderWriting(v) {
+  const W = v.writing; const p = st(v.id, 'writing');
+  p.self = p.self || [];
+  const body = `
+  <section class="sheet prompt">${W.html}</section>
+  <section class="sheet">
+    <label for="essay"><b>Ваш текст</b> ${W.kind === 'story' ? '<span class="muted small">Заголовок напишите отдельной первой строкой, без точки.</span>' : ''}</label>
+    <textarea id="essay" class="essay" spellcheck="false" lang="en" placeholder="Start writing here…">${esc(p.text || '')}</textarea>
+    <div class="meter" id="meter"></div>
+    <div class="checks" id="auto"></div>
+  </section>
+  <section class="sheet">
+    <h2>Проверьте себя по аспектам</h2>
+    <p class="muted small">За каждый нераскрытый аспект по критерию К1 снимают балл.</p>
+    <div class="checks">${W.aspects.map((a, i) => `<label class="chk"><input type="checkbox" data-a="${i}" ${p.self[i] ? 'checked' : ''}><span>${esc(a)}</span></label>`).join('')}</div>
+    <details><summary>Критерии оценивания (20 баллов)</summary>${CRIT}</details>
+  </section>
+  <section class="sheet">
+    <h2>Сдать работу</h2>
+    <div class="row"><button id="send">Отправить учителю</button><button class="ghost" id="dl">Сохранить файл на компьютер</button></div>
+    <div id="msg"></div>
+  </section>`;
+  frame(v, 'writing', body, { bar: false });
+  const ta = $('#essay');
+  function upd() {
+    const n = wordsIn(ta.value);
+    let cls = 'bad', note = 'меньше 180 слов — работу оценят в 0 баллов';
+    if (n >= 180 && n < 200) { cls = 'warn'; note = 'допустимо, но лучше 200–250'; }
+    if (n >= 200 && n <= 250) { cls = 'ok'; note = 'в норме'; }
+    if (n > 250 && n <= 275) { cls = 'warn'; note = 'допустимо, но лучше до 250'; }
+    if (n > 275) { cls = 'bad'; note = 'больше 275 — проверят только первые 250 слов'; }
+    if (!n) { cls = ''; note = 'нужно 200–250 слов' + (W.kind === 'story' ? ', заголовок входит в подсчёт' : ''); }
+    $('#meter').innerHTML = `<span class="pill ${cls}">${n} слов</span><span class="muted">${note}</span>`;
+    const a = autoChecks(W, ta.value); const out = [];
+    if (W.kind === 'story' && n) {
+      out.push(a.title ? '<span class="auto ok">✓ Есть заголовок</span>' : a.titleDot ? '<span class="auto no">✗ Уберите точку после заголовка: это пунктуационная ошибка</span>' : '<span class="auto no">✗ Не вижу заголовка: напишите его первой строкой</span>');
+      if (W.begin) out.push(a.begin ? '<span class="auto ok">✓ Рассказ начинается с заданной фразы</span>' : '<span class="auto no">✗ Рассказ должен начинаться с заданной фразы, слово в слово</span>');
+      if (W.end) out.push(a.end ? '<span class="auto ok">✓ Рассказ заканчивается заданной фразой</span>' : '<span class="auto no">✗ Рассказ должен заканчиваться заданной фразой, слово в слово</span>');
+    }
+    $('#auto').innerHTML = out.map(x => `<div>${x}</div>`).join('');
+  }
+  ta.addEventListener('input', () => { p.text = ta.value; p.editedAt = Date.now(); save(); upd(); });
+  upd();
+  $$('[data-a]').forEach(c => c.addEventListener('change', () => { p.self[+c.dataset.a] = c.checked; save(); }));
+  const msg = (t, k = 'info') => { $('#msg').innerHTML = t ? `<div class="msg ${k}">${t}</div>` : ''; };
+  async function needName() {
+    if ((S.name || '').trim()) return true;
+    const n = prompt('Впишите имя и фамилию, чтобы учитель понял, чья это работа:');
+    if (n && n.trim()) { S.name = n.trim(); save(); return true; }
+    return false;
+  }
+  async function ready() {
+    if (!wordsIn(p.text)) { msg('Сначала напишите текст.', 'err'); return false; }
+    if (wordsIn(p.text) < 180 && !(await ask('Слишком короткий текст', 'В тексте меньше 180 слов: на олимпиаде такую работу оценят в 0 баллов. Сдать всё равно?', 'Сдать'))) return false;
+    return true;
+  }
+  const fileBase = () => ('Олимпиада ' + v.title + ' письмо ' + (S.name || 'ученик')).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  $('#dl').onclick = async () => {
+    if (!(await ready())) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([report(v)], { type: 'text/html' })); a.download = fileBase() + '.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    msg('Файл сохранён в «Загрузки». Его можно отправить учителю в мессенджере.', 'ok');
+  };
+  $('#send').onclick = async () => {
+    if (!(await ready()) || !(await needName())) return;
+    if (p.sentAt && !(await ask('Работа уже отправлена', 'Вы уже отправляли этот текст. Отправить ещё раз? Учитель получит новую копию.', 'Отправить'))) return;
+    $('#send').disabled = $('#dl').disabled = true; msg('Отправляю работу…');
+    const body = JSON.stringify({ filename: fileBase() + '.html', student: S.name || 'ученик', variant: 'Олимпиада 10–11, ' + v.title, html: report(v) });
+    let ok = false;
+    try {
+      const r = await fetch(SEND_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body, redirect: 'follow' });
+      const j = await r.json().catch(() => null); ok = !!(j && j.ok);
+    } catch (e) {
+      try { await fetch(SEND_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body }); ok = true; } catch (e2) { ok = false; }
+    }
+    $('#send').disabled = $('#dl').disabled = false;
+    if (ok) { p.sentAt = Date.now(); save(); msg('Готово! Работа отправлена учителю.', 'ok'); }
+    else msg('Не получилось отправить. Проверьте интернет и попробуйте ещё раз. Если не выйдет, сохраните файл и отправьте его учителю в мессенджере.', 'err');
+  };
+}
+function report(v) {
+  const W = v.writing; const p = st(v.id, 'writing'); const a = autoChecks(W, p.text);
+  const when = new Date().toLocaleString('ru-RU');
+  const rows = SECTIONS.filter(s => s.id !== 'writing').map(s => { const q = peek(v.id, s.id); return `<tr><td>${esc(s.name)}</td><td>${q && q.checked ? q.score + ' из ' + s.max : 'не выполнено'}</td></tr>`; }).join('');
+  const auto = W.kind === 'story' ? `<li>Заголовок: ${a.title ? 'есть' : a.titleDot ? 'есть, но с точкой' : 'не найден'}</li>${W.begin ? `<li>Начало заданной фразой: ${a.begin ? 'да' : 'нет'}</li>` : ''}${W.end ? `<li>Окончание заданной фразой: ${a.end ? 'да' : 'нет'}</li>` : ''}` : '';
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${esc(S.name || 'Ученик')} — письмо, олимпиада ${esc(v.title)}</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;max-width:760px;margin:24px auto;padding:0 16px;color:#18202b}h1{font-size:1.4rem}.t{font:17px/1.65 Georgia,serif;white-space:pre-wrap;border:1px solid #d4dbe3;border-radius:10px;padding:16px;background:#fff}.m{color:#5a6676}table{border-collapse:collapse}td{border:1px solid #d4dbe3;padding:4px 10px}blockquote{border-left:4px solid #24489c;margin:8px 0;padding:6px 14px;background:#f4f7fb}.notice{border:2px solid #d4dbe3;border-radius:10px;padding:8px 14px}.must{font-style:italic}input{width:3em}</style></head><body>
+<h1>${esc(S.name || 'Ученик')} — письмо</h1>
+<p class="m">ВсОШ по английскому, муниципальный этап, 10–11 классы · задания ${esc(v.title)} · ${esc(when)}</p>
+<h2>Задание</h2>${W.html}
+<h2>Текст ученика · ${wordsIn(p.text)} слов</h2><div class="t">${esc(p.text)}</div>
+<h2>Самопроверка</h2><ul>${W.aspects.map((x, i) => `<li>${p.self && p.self[i] ? '☑' : '☐'} ${esc(x)}</li>`).join('')}${auto}</ul>
+<h2>Оценка учителя</h2><table><tr><td>К1 Решение задачи</td><td>/4</td></tr><tr><td>К2 Организация текста</td><td>/4</td></tr><tr><td>К3 Лексика</td><td>/4</td></tr><tr><td>К4 Грамматика</td><td>/4</td></tr><tr><td>К5 Орфография и пунктуация</td><td>/4</td></tr><tr><td><b>Итого</b></td><td>/20</td></tr></table>
+<h2>Другие разделы этого года в тренажёре</h2><table>${rows}</table>
+</body></html>`;
+}
+
+// ---------- запуск раздела ----------
+function renderSection(y, sec) {
+  const v = variant(y);
+  ({ listening: renderListening, reading1: renderReading1, reading2: renderReading2, uoe1: renderUoe1, uoe2: renderUoe2, uoe3: renderUoe3, uoe4: renderUoe4, writing: renderWriting })[sec](v);
+}
+route();
+</script>
+</body>
+</html>
